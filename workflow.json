@@ -134,7 +134,7 @@
       "position": [1480, -120],
       "parameters": {
         "method": "POST",
-        "url": "https://webhook.site/DEMO-AUTO-REPLY",
+        "url": "https://webhook.site/6b880026-c28f-4983-b465-c6a84963e1a7",
         "jsonParameters": true,
         "bodyParametersJson": "={{ { customer_id: $json.customer_id, reply: $json.ai_reply } }}"
       }
@@ -147,7 +147,7 @@
       "position": [1480, 120],
       "parameters": {
         "method": "POST",
-        "url": "https://webhook.site/DEMO-HUMAN-ESCALATION",
+        "url": "https://webhook.site/6b880026-c28f-4983-b465-c6a84963e1a7",
         "jsonParameters": true,
         "bodyParametersJson": "={{ { customer_id: $json.customer_id, message: $json.message } }}"
       }
@@ -160,7 +160,7 @@
       "position": [1680, 0],
       "parameters": {
         "method": "POST",
-        "url": "https://webhook.site/DEMO-AUDIT-LOG",
+        "url": "https://webhook.site/6b880026-c28f-4983-b465-c6a84963e1a7",
         "jsonParameters": true,
         "bodyParametersJson": "={{ $json }}"
       }
