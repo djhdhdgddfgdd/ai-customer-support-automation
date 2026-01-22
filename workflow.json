@@ -1,0 +1,202 @@
+{
+  "name": "AI Customer Support Automation (Production Demo)",
+  "nodes": [
+    {
+      "id": "webhook",
+      "name": "Secure Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ai-customer-support",
+        "responseMode": "onReceived"
+      }
+    },
+    {
+      "id": "verify",
+      "name": "Verify Webhook Secret",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [220, 0],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.headers['x-webhook-secret'] }}",
+              "operation": "equal",
+              "value2": "DEMO_SUPPORT_SECRET"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "normalize",
+      "name": "Normalize Incoming Message",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [440, -80],
+      "parameters": {
+        "keepOnlySet": true,
+        "values": {
+          "string": [
+            {
+              "name": "customer_id",
+              "value": "={{ $json.body.customer_id }}"
+            },
+            {
+              "name": "message",
+              "value": "={{ $json.body.message }}"
+            },
+            {
+              "name": "channel",
+              "value": "={{ $json.body.channel }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "validate",
+      "name": "Validate Message",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [660, -80],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.message }}",
+              "operation": "isNotEmpty"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "ai",
+      "name": "AI Response Generator (Mock Gemini/GPT)",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [880, 0],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "ai_reply",
+              "value": "={{ $json.message.toLowerCase().includes('price') ? 'سعر الخدمة يبدأ من 99 ريال.' : 'شكرًا لتواصلك، كيف أقدر أساعدك؟' }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "intent",
+      "name": "Intent Analyzer",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1080, 0],
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "intent",
+              "value": "={{ $json.message.toLowerCase().includes('شكوى') || $json.message.toLowerCase().includes('problem') ? 'ESCALATE' : 'AUTO_REPLY' }}"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "decision",
+      "name": "Escalation Decision",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1280, 0],
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.intent }}",
+              "operation": "equal",
+              "value2": "ESCALATE"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "auto",
+      "name": "Send Auto Reply",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1480, -120],
+      "parameters": {
+        "method": "POST",
+        "url": "https://webhook.site/DEMO-AUTO-REPLY",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{ { customer_id: $json.customer_id, reply: $json.ai_reply } }}"
+      }
+    },
+    {
+      "id": "human",
+      "name": "Escalate to Human Support",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1480, 120],
+      "parameters": {
+        "method": "POST",
+        "url": "https://webhook.site/DEMO-HUMAN-ESCALATION",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{ { customer_id: $json.customer_id, message: $json.message } }}"
+      }
+    },
+    {
+      "id": "audit",
+      "name": "Audit Log",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1680, 0],
+      "parameters": {
+        "method": "POST",
+        "url": "https://webhook.site/DEMO-AUDIT-LOG",
+        "jsonParameters": true,
+        "bodyParametersJson": "={{ $json }}"
+      }
+    }
+  ],
+  "connections": {
+    "Secure Webhook": {
+      "main": [[{ "node": "Verify Webhook Secret", "type": "main" }]]
+    },
+    "Verify Webhook Secret": {
+      "main": [[{ "node": "Normalize Incoming Message", "type": "main" }]]
+    },
+    "Normalize Incoming Message": {
+      "main": [[{ "node": "Validate Message", "type": "main" }]]
+    },
+    "Validate Message": {
+      "main": [[{ "node": "AI Response Generator (Mock Gemini/GPT)", "type": "main" }]]
+    },
+    "AI Response Generator (Mock Gemini/GPT)": {
+      "main": [[{ "node": "Intent Analyzer", "type": "main" }]]
+    },
+    "Intent Analyzer": {
+      "main": [[{ "node": "Escalation Decision", "type": "main" }]]
+    },
+    "Escalation Decision": {
+      "main": [
+        [{ "node": "Send Auto Reply", "type": "main" }],
+        [{ "node": "Escalate to Human Support", "type": "main" }]
+      ]
+    },
+    "Send Auto Reply": {
+      "main": [[{ "node": "Audit Log", "type": "main" }]]
+    },
+    "Escalate to Human Support": {
+      "main": [[{ "node": "Audit Log", "type": "main" }]]
+    }
+  },
+  "active": false
+}
