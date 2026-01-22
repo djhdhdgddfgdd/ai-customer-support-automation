@@ -75,16 +75,12 @@ In real production environments, this would be replaced with:
 ---
 
 ## 📡 Example Test Request
+##cmd comand:
+curl -X POST http://localhost:5678/webhook-test/ai-customer-support ^
+  -H "Content-Type: application/json" ^
+  -H "x-webhook-secret: DEMO_SUPPORT_SECRET" ^
+  -d "{\"customer_id\": \"CUS-9001\", \"message\": \"لدي شكوى عاجلة في الخدمة\", \"channel\": \"whatsapp\"}"
 
-```bash
-curl -X POST http://localhost:5678/webhook-test/ai-customer-support \
--H "Content-Type: application/json" \
--H "x-webhook-secret: DEMO_SUPPORT_SECRET" \
--d '{
-  "customer_id": "CUS-9001",
-  "message": "لدي شكوى عاجلة في الخدمة",
-  "channel": "whatsapp"
-}'
 🧠 AI Logic (Demo)
 The demo uses simple rule-based logic for clarity:
 
